@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react';
-import { Route, Routes, useLocation } from 'react-router-dom';
+import { Route, Routes, useLocation, useNavigate } from 'react-router-dom';
+import { onAuthStateChanged } from 'firebase/auth';
+import { auth } from '../firebase'; // Import auth from your firebase config
 
 import Loader from './common/Loader';
 import PageTitle from './components/PageTitle';
@@ -11,7 +13,30 @@ import UnderDevelopment from './pages/UnderDevelopment';
 
 function App() {
   const [loading, setLoading] = useState<boolean>(true);
+  const [user, setUser] = useState<any>(null);  // Track the authenticated user
   const { pathname } = useLocation();
+  const navigate = useNavigate();
+
+  // Check user authentication on page load
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      if (currentUser) {
+        setUser(currentUser); // Set the user if authenticated
+      } else {
+        setUser(null); // Set null if not authenticated
+      }
+      setLoading(false); // Stop loading after the user state is checked
+    });
+
+    return () => unsubscribe(); // Clean up the listener on component unmount
+  }, []);
+
+  // Redirect to sign-in if the user is not authenticated and trying to access restricted routes
+  useEffect(() => {
+    if (!user && pathname !== '/auth/signin' && pathname !== '/auth/signup') {
+      navigate('/auth/signin');  // Redirect to signin if not authenticated
+    }
+  }, [user, pathname, navigate]);
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -39,7 +64,7 @@ function App() {
           path="/test"
           element={
             <>
-              <PageTitle title="Signin" />
+              <PageTitle title="Under Development" />
               <UnderDevelopment />
             </>
           }

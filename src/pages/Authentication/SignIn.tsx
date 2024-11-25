@@ -1,10 +1,34 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import Breadcrumb from '../../components/Breadcrumbs/Breadcrumb';
 import LogoDark from '../../images/logo/logo-dark.png';
 import Logo from '../../images/logo/logo.png';
+import {auth, signInWithEmailAndPassword} from '../../../firebase';
 
 const SignIn: React.FC = () => {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
+
+  const navigate = useNavigate();
+
+  const handleSignIn = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
+    setSuccess('');
+
+    try {
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      console.log('Signed in:', userCredential.user);
+      setSuccess('Sign-in successful!');
+      navigate('/');
+    } catch (err: any) {
+      setError(err.message || 'Failed to sign in!');
+    }
+  };
+
+
   return (
     <>
       <Breadcrumb pageName="Sign In" />
@@ -155,7 +179,7 @@ const SignIn: React.FC = () => {
                 Sign In to Admino
               </h2>
 
-              <form>
+              <form onSubmit={handleSignIn}>
                 <div className="mb-4">
                   <label className="mb-2.5 block font-medium text-black dark:text-white">
                     Email
@@ -164,7 +188,9 @@ const SignIn: React.FC = () => {
                     <input
                       type="email"
                       placeholder="Enter your email"
-                      className="w-full rounded-lg border border-stroke bg-transparent py-4 pl-6 pr-10 text-black outline-none focus:border-primary focus-visible:shadow-none dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary"
+                      className="w-full rounded-lg border border-stroke bg-transparent py-4 pl-6 text-black outline-none focus:border-primary dark:border-form-strokedark dark:bg-form-input dark:text-white"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
                     />
 
                     <span className="absolute right-4 top-4">
@@ -189,13 +215,15 @@ const SignIn: React.FC = () => {
 
                 <div className="mb-6">
                   <label className="mb-2.5 block font-medium text-black dark:text-white">
-                    Re-type Password
+                    Password
                   </label>
                   <div className="relative">
-                    <input
+                  <input
                       type="password"
-                      placeholder="6+ Characters, 1 Capital letter"
-                      className="w-full rounded-lg border border-stroke bg-transparent py-4 pl-6 pr-10 text-black outline-none focus:border-primary focus-visible:shadow-none dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary"
+                      placeholder="Enter your password"
+                      className="w-full rounded-lg border border-stroke bg-transparent py-4 pl-6 text-black outline-none focus:border-primary dark:border-form-strokedark dark:bg-form-input dark:text-white"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
                     />
 
                     <span className="absolute right-4 top-4">
@@ -222,13 +250,15 @@ const SignIn: React.FC = () => {
                   </div>
                 </div>
 
-                <div className="mb-5">
-                  <input
+                {error && <p className="text-red-500">{error}</p>}
+                  {success && <p className="text-green-500">{success}</p>}
+
+                  <button
                     type="submit"
-                    value="Sign In"
-                    className="w-full cursor-pointer rounded-lg border border-primary bg-primary p-4 text-white transition hover:bg-opacity-90"
-                  />
-                </div>
+                    className="w-full cursor-pointer rounded-lg border border-primary bg-primary p-4 text-white transition hover:bg-opacity-90 my-5"
+                  >
+                    Sign In
+                  </button>
 
                 <button className="flex w-full items-center justify-center gap-3.5 rounded-lg border border-stroke bg-gray p-4 hover:bg-opacity-50 dark:border-strokedark dark:bg-meta-4 dark:hover:bg-opacity-50">
                   <span>

@@ -1,10 +1,50 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import Breadcrumb from '../../components/Breadcrumbs/Breadcrumb';
 import LogoDark from '../../images/logo/logo-dark.png';
 import Logo from '../../images/logo/logo.png';
+import {auth, createUserWithEmailAndPassword, GoogleAuthProvider, signInWithRedirect} from '../../../firebase';
 
 const SignUp: React.FC = () => {
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
+
+  const navigate = useNavigate();
+
+  const handleSignUp = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError("");
+    setSuccess("");
+
+    if (password !== confirmPassword) {
+      setError("Passwords do not match!");
+      return;
+    }
+
+    try {
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      console.log("User created:", userCredential.user);
+      setSuccess("Account created successfully!");
+      navigate('/');
+    } catch (err: any) {
+      setError(err.message || "Something went wrong!");
+    }
+  };
+
+  const handleGoogleSignUp = async () => {
+    const provider = new GoogleAuthProvider();
+    try {
+      await signInWithRedirect(auth, provider);
+      console.log("Redirecting to Google Sign-In...");
+    } catch (err: any) {
+      setError(err.message || "Google sign-in failed!");
+    }
+  };
+
   return (
     <>
       <Breadcrumb pageName="Sign Up" />
@@ -154,7 +194,7 @@ const SignUp: React.FC = () => {
                 Sign Up to Admino
               </h2>
 
-              <form>
+              <form onSubmit={handleSignUp}>
                 <div className="mb-4">
                   <label className="mb-2.5 block font-medium text-black dark:text-white">
                     Name
@@ -163,7 +203,9 @@ const SignUp: React.FC = () => {
                     <input
                       type="text"
                       placeholder="Enter your full name"
-                      className="w-full rounded-lg border border-stroke bg-transparent py-4 pl-6 pr-10 text-black outline-none focus:border-primary focus-visible:shadow-none dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary"
+                      className="w-full rounded-lg border border-stroke bg-transparent py-4 pl-6 text-black outline-none focus:border-primary dark:border-form-strokedark dark:bg-form-input dark:text-white"
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
                     />
 
                     <span className="absolute right-4 top-4">
@@ -198,9 +240,10 @@ const SignUp: React.FC = () => {
                     <input
                       type="email"
                       placeholder="Enter your email"
-                      className="w-full rounded-lg border border-stroke bg-transparent py-4 pl-6 pr-10 text-black outline-none focus:border-primary focus-visible:shadow-none dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary"
+                      className="w-full rounded-lg border border-stroke bg-transparent py-4 pl-6 text-black outline-none focus:border-primary dark:border-form-strokedark dark:bg-form-input dark:text-white"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
                     />
-
                     <span className="absolute right-4 top-4">
                       <svg
                         className="fill-current"
@@ -229,7 +272,9 @@ const SignUp: React.FC = () => {
                     <input
                       type="password"
                       placeholder="Enter your password"
-                      className="w-full rounded-lg border border-stroke bg-transparent py-4 pl-6 pr-10 text-black outline-none focus:border-primary focus-visible:shadow-none dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary"
+                      className="w-full rounded-lg border border-stroke bg-transparent py-4 pl-6 text-black outline-none focus:border-primary dark:border-form-strokedark dark:bg-form-input dark:text-white"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
                     />
 
                     <span className="absolute right-4 top-4">
@@ -264,7 +309,9 @@ const SignUp: React.FC = () => {
                     <input
                       type="password"
                       placeholder="Re-enter your password"
-                      className="w-full rounded-lg border border-stroke bg-transparent py-4 pl-6 pr-10 text-black outline-none focus:border-primary focus-visible:shadow-none dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary"
+                      className="w-full rounded-lg border border-stroke bg-transparent py-4 pl-6 text-black outline-none focus:border-primary dark:border-form-strokedark dark:bg-form-input dark:text-white"
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
                     />
 
                     <span className="absolute right-4 top-4">
@@ -289,17 +336,19 @@ const SignUp: React.FC = () => {
                       </svg>
                     </span>
                   </div>
-                </div>
 
-                <div className="mb-5">
-                  <input
+                  {error && <p className="text-red-500">{error}</p>}
+                  {success && <p className="text-green-500">{success}</p>}
+
+                  <button
                     type="submit"
-                    value="Create account"
-                    className="w-full cursor-pointer rounded-lg border border-primary bg-primary p-4 text-white transition hover:bg-opacity-90"
-                  />
+                    className="w-full cursor-pointer rounded-lg border border-primary bg-primary p-4 text-white transition hover:bg-opacity-90 mt-5"
+                  >
+                    Create account
+                  </button>
                 </div>
 
-                <button className="flex w-full items-center justify-center gap-3.5 rounded-lg border border-stroke bg-gray p-4 hover:bg-opacity-50 dark:border-strokedark dark:bg-meta-4 dark:hover:bg-opacity-50">
+                <button onClick={handleGoogleSignUp} className="flex w-full items-center justify-center gap-3.5 rounded-lg border border-stroke bg-gray p-4 hover:bg-opacity-50 dark:border-strokedark dark:bg-meta-4 dark:hover:bg-opacity-50">
                   <span>
                     <svg
                       width="20"

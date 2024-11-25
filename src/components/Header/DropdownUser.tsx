@@ -1,10 +1,37 @@
-import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { Link,useNavigate } from 'react-router-dom';
 import ClickOutside from '../ClickOutside';
 import UserOne from '../../images/user/user-01.png';
+import { onAuthStateChanged, User } from 'firebase/auth';
+import { auth , signOut} from '../../../firebase';
 
 const DropdownUser = () => {
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [user, setUser] = useState<User>();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    // Check authentication state
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      if (currentUser) {
+        setUser(currentUser); // Set the user if authenticated
+      } else {
+        navigate("/auth/signin")
+      }
+    });
+
+    return () => unsubscribe(); // Cleanup the listener when component unmounts
+  }, []);
+
+  const handleLogout = async () => {
+    try {
+      await signOut(auth); // Sign the user out
+      console.log('User signed out');
+      navigate('/auth/signin'); // Redirect to sign-in page after logout
+    } catch (err) {
+      console.error('Error signing out:', err);
+    }
+  };
 
   return (
     <ClickOutside onClick={() => setDropdownOpen(false)} className="relative">
@@ -15,7 +42,7 @@ const DropdownUser = () => {
       >
         <span className="hidden text-right lg:block">
           <span className="block text-sm font-medium text-black dark:text-white">
-            Adarsh Raj
+            {user ? user.displayName || user.email : 'Guest'}
           </span>
           <span className="block text-xs">Developer</span>
         </span>
@@ -119,7 +146,7 @@ const DropdownUser = () => {
               </Link>
             </li>
           </ul>
-          <button className="flex items-center gap-3.5 px-6 py-4 text-sm font-medium duration-300 ease-in-out hover:text-primary lg:text-base">
+          <button onClick={handleLogout} className="flex items-center gap-3.5 px-6 py-4 text-sm font-medium duration-300 ease-in-out hover:text-primary lg:text-base">
             <svg
               className="fill-current"
               width="22"
